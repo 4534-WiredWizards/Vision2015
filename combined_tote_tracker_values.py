@@ -60,8 +60,8 @@ while(True):
     h, s, v = cv2.split(hsv)
 
     # these parameters will find 'green' on the image
-    h = threshold_range(h, 30, 60) ## h, 30, 75 original
-    s = threshold_range(s, 0, 10) ## s, 188, 255 original
+    h = threshold_range(h, 30, 60) ## h, 30, 75 original80,90
+    s = threshold_range(s, 0, 10) ## s, 188, 255 original80,130
     v = threshold_range(v, 16, 255)
 
     # combine them all and show that
@@ -140,16 +140,11 @@ while(True):
             #now we're correct
 
         midpoint = ((leftcenter[0]+rightcenter[0])/2)
-        gracezone = 40
+        #gracezone = 40
 
         if matchcount > 4:
 
-            if midpoint < (SCREEN_MIDPOINT - gracezone):
-                ser.write('L')
-            elif midpoint > (SCREEN_MIDPOINT + gracezone):
-                ser.write('R')
-            else:
-                ser.write('P')
+            ser.write(str(midpoint-SCREEN_MIDPOINT)+';')
                 #color_image = cv2.cvtColor(color_image,cv2.CV_BGR2GRAY)
         else:
             ser.write('N')

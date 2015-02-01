@@ -3,7 +3,7 @@ import cv2
 
 cap = cv2.VideoCapture(1)
 
-
+#
 def mouseEventHandler(event,x,y,flags,param):
     global currentimage
     if event == cv2.EVENT_MOUSEMOVE:
@@ -20,6 +20,8 @@ while(True):
 
     # Our operations on the frame come here
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+    h,s,v = cv2.split(gray);
     
     #ret,thresh = cv2.threshold(gray,127,255,0)
 
@@ -28,8 +30,8 @@ while(True):
     #cv2.drawContours(gray, contours, -1, (0,255,0), 2)
     
     # Display the resulting frame
-    currentimage = gray
-    cv2.imshow('frame',gray)
+    currentimage = s
+    cv2.imshow('frame',currentimage)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 

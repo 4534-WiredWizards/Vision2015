@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 from numpy import int32
 import math
+import time
 import serial
 
 ser = serial.Serial()
@@ -39,12 +40,12 @@ def calculate_distance(height):
 
 cap = cv2.VideoCapture(0)
 
-orb = cv2.ORB()
-bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+#orb = cv2.ORB()
+#bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
 template = cv2.imread("vision_target_binary.png",0)
 
-kp1, des1 = orb.detectAndCompute(template,None)
+#kp1, des1 = orb.detectAndCompute(template,None)
 
 FRAME_WIDTH = cap.get(3)
 FRAME_HEIGHT = cap.get(4)
@@ -62,7 +63,7 @@ while(True):
     # these parameters will find 'green' on the image
     h = threshold_range(h, 0, 100) ## h, 30, 75 original
     s = threshold_range(s, 0, 30) ## s, 188, 255 original
-    v = threshold_range(v, 250, 255)
+    v = threshold_range(v, 150, 255)
 
     # combine them all and show that
     combined = cv2.bitwise_and(h, cv2.bitwise_and(s, v))
@@ -91,8 +92,8 @@ while(True):
     heights = []
     centers = []
 
-    drawing_img = np.zeros((FRAME_HEIGHT,FRAME_WIDTH,3),np.uint8)
-    drawing_img = cv2.cvtColor(drawing_img,cv2.cv.CV_BGR2GRAY)
+    drawing_img1 = np.zeros((FRAME_HEIGHT,FRAME_WIDTH,3),np.uint8)
+    drawing_img = cv2.cvtColor(drawing_img1,cv2.cv.CV_BGR2GRAY)
 
     # then draw it
     try:
@@ -100,31 +101,38 @@ while(True):
         approxContours = []
 
         for cont in contours:
+            #print(cont)
             try:
                 epsilion = 0.03*cv2.arcLength(cont,True) #change the float to change the matching accuracy
                 length = length + epsilion/0.03
                 p = cv2.approxPolyDP(cont,epsilion,False)
-                if(len(p) > 4 and len(p) < 8 and cv2.contourArea(p) > 1000):
-                    print(cv2.contourArea(p))
+                area = cv2.contourArea(p)
+                #print area
+                #print(len(p))
+                #approxContours.append(p)
+                if(len(p) > 4 and len(p) < 8 and area > 1000):
+                    #print(area)
                     x,y,w,h = cv2.boundingRect(p) #get the bounding rectangle
                     #cv2.rectangle(color_img,(x,y),(x+w,y+h),(0,255,0),2)
                     heights.append(h)
                     centers.append(((x+x+w)/2,(y+y+h)/2))
                     approxContours.append(p)
-            except TypeError:
+            except TypeError as e:
                 print str(e)
         cv2.drawContours(drawing_img, approxContours, -1, 255, thickness=2) #original second argument = p
     except TypeError as e:
         print str(e)
 
+    #print(heights)
+    #print(centers)
     #now, do a feature match and see if it is found
-    kp2, des2 = orb.detectAndCompute(drawing_img,None)
-    try:
-        matches = bf.match(des1,des2)
-        matchcount = len(matches)
-    except:
-        matchcount = 0
-
+    #kp2, des2 = orb.detectAndCompute(drawing_img,None)
+    #try:
+    #    matches = bf.match(des1,des2)
+    #    matchcount = len(matches)
+    #except:
+    #    matchcount = 0
+    matchcount = 5
     #try:
         #print('Distance: '+str(calculate_distance(max(heights))))
     #except ValueError as e:
@@ -152,7 +160,9 @@ while(True):
             ser.write(str(SCREEN_MIDPOINT-midpoint)+";")
                 #color_image = cv2.cvtColor(color_image,cv2.CV_BGR2GRAY)
         else:
-            ser.write(0.0)
+            ser.write("0.0;")
+    except IndexError as e:
+        print(str(time.time())+str(e))
     except:
         pass
 
@@ -160,6 +170,8 @@ while(True):
 
     #cv2.imshow('Final',morphed_img)
     #cv2.imshow('Drawing',drawing_img)
+
+    cv2.imwrite('drawing.jpg',drawing_img)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break

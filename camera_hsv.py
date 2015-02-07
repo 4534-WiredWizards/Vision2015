@@ -30,7 +30,7 @@ while(True):
     #cv2.drawContours(gray, contours, -1, (0,255,0), 2)
     
     # Display the resulting frame
-    currentimage = s
+    currentimage = v
     cv2.imshow('frame',currentimage)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
